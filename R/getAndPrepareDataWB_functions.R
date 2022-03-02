@@ -6,8 +6,8 @@
 #'Clean data from the PIT tag database
 #'
 
-#'@param d Which drainage, "west" or "stanley"
-#'@return a data frame
+#'@param d a number
+#'@return the number
 #'@export
 
 testInteger <- function(d){
