@@ -24,8 +24,6 @@ testInteger <- function(d){
 #'@export
 
 cleanData <- function(d, drainageIn){
-  require(lubridate)
-  require(getWBData)
 
   # some formatting fixes
   d$sectionOriginal <- d$section
@@ -90,7 +88,7 @@ cleanData <- function(d, drainageIn){
 #'@export
 
 getSites <- function(drainageIn = "west"){
-  require(getWBData)
+
   # get sites table
   sitesIn <- data.frame(tbl(conDplyr,"data_sites") )
   sites <- sitesIn %>%
@@ -124,16 +122,15 @@ mergeSites <- function(d, drainageIn){
 #'@export
 
 getCounts_AllFish <- function(drainage = "west", filteredAreas = c("inside","trib")){
-  require(getWBData)
 
-  cdWBAll <- createCoreData(sampleType = "electrofishing", #"stationaryAntenna","portableAntenna"),
+  cdWBAll <- getWBData::createCoreData(sampleType = "electrofishing", #"stationaryAntenna","portableAntenna"),
                             whichDrainage = drainage,
                             columnsToAdd=c("sampleNumber","river","riverMeter","survey",'observedLength','observedWeight'),
                             includeUntagged = T) %>%
-    addTagProperties( columnsToAdd = c("cohort","species","dateEmigrated","sex","species")) %>%
+    getWBData::addTagProperties( columnsToAdd = c("cohort","species","dateEmigrated","sex","species")) %>%
     dplyr::filter( area %in% c("trib","inside","below","above"), !is.na(sampleNumber) ) %>%
     # createCmrData( maxAgeInSamples = 20, inside = F, censorDead = F, censorEmigrated = T) %>%
-    addSampleProperties() %>%
+    getWBData::addSampleProperties() %>%
     # addEnvironmental() %>%
     # addKnownZ() %>%
     # fillSizeLocation(size = F) #assumes fish stay in same location until observed elsewhere
@@ -166,21 +163,22 @@ getCounts_AllFish <- function(drainage = "west", filteredAreas = c("inside","tri
 
 #'Get pass data from raw data table
 #'
+#'@param cd a data frame created with getWBData::createCoreData()
 #'@param drainage Which drainage, "west" or "stanley"
 #'@return a data frame
 #'@export
 
-addNPasses <- function(cd,dr){
+addNPasses <- function(cd, drainage){
 
-  reconnect()
+  getWBData::reconnect()
 
   tagged <- data.frame(tbl(conDplyr,"data_tagged_captures"))
-  unTagged <- data.frame(tag=NA, tbl(conDplyr,"data_untagged_captures")) %>%
-    mutate(cohort=as.character(cohort))
+  unTagged <- data.frame(tag = NA, tbl(conDplyr,"data_untagged_captures")) %>%
+    mutate(cohort = as.character(cohort))
   d <- add_row(tagged, unTagged)
 
   nPasses <- d %>%
-    filter(drainage == dr) %>%
+    filter(drainage == drainage) %>%
     dplyr::select(river, sample_number, pass) %>%
     distinct() %>%
     collect() %>%

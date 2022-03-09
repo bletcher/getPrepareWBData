@@ -1,10 +1,10 @@
 Package: getPrepareWBData
-Title: Get and prepare data from the West Brook (MA, USA) study
+Title: Prepare data from the West Brook (MA, USA) study
 Version: 0.0.0.9000
 Authors@R: 
     person("Ben", "Letcher", , "bletcher@usgs.gov", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: Functions to get WB data from the server and to prepare the data for analysis.
+Description: Functions to prepare the data for analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -12,3 +12,8 @@ RoxygenNote: 7.1.2
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Imports: 
+    lubridate,
+    getWBData,
+    dplyr,
+    tidyverse
