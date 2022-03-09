@@ -26,7 +26,7 @@ testInteger <- function(d){
 cleanData <- function(d, drainageIn){
   require(lubridate)
   require(getWBData)
-  reconnect()
+
   # some formatting fixes
   d$sectionOriginal <- d$section
   d$section <- as.numeric(d$section)
@@ -64,6 +64,7 @@ cleanData <- function(d, drainageIn){
     # arrange(tag,sampleNumber) %>%
     mutate( lagSection = lead(section),
             distMoved = section - lagSection,
+            observedWeight = ifelse(observedWeight <= -9999, NA, observedWeight),
             lagObservedWeight = lead(observedWeight),
             lagObservedLength = lead(observedLength),
             grWeight = exp(lagObservedWeight - observedWeight)/as.numeric((lagDetectionDate - detectionDate)),
@@ -163,3 +164,34 @@ getCounts_AllFish <- function(drainage = "west", filteredAreas = c("inside","tri
   return(counts)
 }
 
+#'Get pass data from raw data table
+#'
+#'@param drainage Which drainage, "west" or "stanley"
+#'@return a data frame
+#'@export
+
+addNPasses <- function(cd,dr){
+
+  reconnect()
+
+  tagged <- data.frame(tbl(conDplyr,"data_tagged_captures"))
+  unTagged <- data.frame(tag=NA, tbl(conDplyr,"data_untagged_captures")) %>%
+    mutate(cohort=as.character(cohort))
+  d <- add_row(tagged, unTagged)
+
+  nPasses <- d %>%
+    filter(drainage == dr) %>%
+    dplyr::select(river, sample_number, pass) %>%
+    distinct() %>%
+    collect() %>%
+    arrange(sample_number,river) %>%
+
+    group_by(river,sample_number) %>%
+    summarize(nPasses = max(pass,na.rm=T)) %>%
+    rename(sampleNumber = sample_number)
+
+  cd <- left_join(cd, nPasses, by = c('river',"sampleNumber"))
+  cd$nPasses <- ifelse(is.na(cd$nPasses) & cd$proportionSampled == 0, 1, cd$nPasses)
+  #coreData[is.na(nPasses)&proportionSampled==0,nPasses:=1] #when proportionSampled==0 no pass info
+  return(cd)
+}
