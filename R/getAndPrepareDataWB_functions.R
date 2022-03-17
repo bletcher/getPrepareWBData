@@ -185,7 +185,7 @@ addNPasses <- function(cd, drainage){
     arrange(sample_number,river) %>%
 
     group_by(river,sample_number) %>%
-    summarize(nPasses = max(pass,na.rm=T)) %>%
+    summarize(nPasses = max(pass, na.rm = TRUE)) %>%
     rename(sampleNumber = sample_number)
 
   cd <- left_join(cd, nPasses, by = c('river',"sampleNumber"))
